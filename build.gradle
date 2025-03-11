@@ -41,7 +41,6 @@ minecraft {
         }
 
         client {
-            jvmArg "-XX:+AllowEnhancedClassRedefinition"
             property 'forge.enabledGameTestNamespaces', mod_id
         }
 
@@ -68,6 +67,16 @@ repositories {
         name = 'tterrag maven'
         url = 'https://maven.tterrag.com/'
     }
+
+    maven {
+        url = uri("https://maven.createmod.net")
+        content {
+            includeGroup("com.simibubi.create")
+            includeGroup("net.createmod.ponder")
+            includeGroup("dev.engine-room.flywheel")
+        }
+    }
+
     maven { url "https://maven.blamejared.com/" } // JEI
 }
 
@@ -81,9 +90,12 @@ dependencies {
      compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
      runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
 
-    implementation fg.deobf("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
-    implementation fg.deobf("com.jozufozu.flywheel:flywheel-forge-${minecraft_version}:${flywheel_version}")
     implementation fg.deobf("com.tterrag.registrate:Registrate:${registrate_version}")
+    implementation fg.deobf("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
+    implementation fg.deobf("net.createmod.ponder:Ponder-Forge-${minecraft_version}:${ponder_version}")
+    compileOnly fg.deobf("dev.engine-room.flywheel:flywheel-forge-api-${minecraft_version}:${flywheel_version}")
+    runtimeOnly fg.deobf("dev.engine-room.flywheel:flywheel-forge-${minecraft_version}:${flywheel_version}")
+    implementation fg.deobf("io.github.llamalad7:mixinextras-forge:${mixin_extras_version}")
 }
 
 tasks.named('processResources', ProcessResources).configure {
