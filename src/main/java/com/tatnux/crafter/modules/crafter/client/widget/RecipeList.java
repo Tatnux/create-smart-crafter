@@ -1,7 +1,7 @@
 package com.tatnux.crafter.modules.crafter.client.widget;
 
-import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget;
 import com.tatnux.crafter.modules.crafter.client.SmartCrafterScreen;
+import net.createmod.catnip.gui.widget.AbstractSimiWidget;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;

@@ -1,15 +1,16 @@
 package com.tatnux.crafter.config;
 
-import com.simibubi.create.foundation.config.ConfigBase;
+import net.createmod.catnip.config.ConfigBase;
+import org.jetbrains.annotations.NotNull;
 
 public class SCServer extends ConfigBase {
 
-    public final ConfigInt crafterProgressNeeded = i(100, 1, "crafterProgressNeeded", "Greater the number is, longer a recipe will take to craft");
-    public final ConfigInt speedRatio = i(24, 1, 56, "speedRatio", "Greater the number is, faster a recipe will take to craft with high su");
-    public final ConfigInt crafterStressImpact = i(5, 1, "crafterStressImpact", "The stress impact of the Smart Crafter");
+    public final ConfigInt crafterProgressNeeded = i(100, 1, "crafterProgressNeeded", "Base progress needed to craft one item. Higher values slow crafting.");
+    public final ConfigInt crafterStressImpact = i(6, 1, "crafterStressImpact", "Stress impact of the Smart Crafter. Higher values require more power to operate.");
+    public final ConfigInt speedRatio = i(24, 1, 256, "speedRatio", "Multiplier for how RPM affects crafting speed. Higher values make speed increase crafting rate more.");
 
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         return "server";
     }
 }

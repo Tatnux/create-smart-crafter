@@ -2,9 +2,10 @@ package com.tatnux.crafter.lib.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
-import com.simibubi.create.foundation.gui.element.ScreenElement;
 import com.simibubi.create.foundation.gui.widget.IconButton;
 import com.simibubi.create.foundation.item.TooltipHelper;
+import net.createmod.catnip.gui.element.ScreenElement;
+import net.createmod.catnip.lang.FontHelper;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -59,7 +60,7 @@ public class CrafterIconButton extends IconButton {
                             this.getToolTip().add(component);
                         }
                     } else {
-                        this.getToolTip().add(TooltipHelper.holdShift(TooltipHelper.Palette.YELLOW, Screen.hasShiftDown()));
+                        this.getToolTip().add(TooltipHelper.holdShift(FontHelper.Palette.YELLOW, Screen.hasShiftDown()));
                     }
                 }
             }

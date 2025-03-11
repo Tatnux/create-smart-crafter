@@ -1,6 +1,6 @@
 package com.tatnux.crafter.lib.gui;
 
-import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget;
+import net.createmod.catnip.gui.widget.AbstractSimiWidget;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import org.jetbrains.annotations.NotNull;

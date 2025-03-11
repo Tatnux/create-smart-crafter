@@ -2,14 +2,13 @@ package com.tatnux.crafter.modules.crafter;
 
 
 import com.simibubi.create.AllBlocks;
+import com.simibubi.create.AllCreativeModeTabs;
 import com.simibubi.create.AllItems;
-import com.simibubi.create.Create;
-import com.simibubi.create.content.kinetics.BlockStressDefaults;
-import com.simibubi.create.content.kinetics.crafter.ShaftlessCogwheelInstance;
+import com.simibubi.create.api.stress.BlockStressValues;
 import com.simibubi.create.foundation.data.BlockStateGen;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.simibubi.create.foundation.data.recipe.MechanicalCraftingRecipeBuilder;
-import com.tatnux.crafter.SmartCrafter;
+import com.tatnux.crafter.config.Config;
 import com.tatnux.crafter.lib.module.IModule;
 import com.tatnux.crafter.modules.crafter.blocks.SmartCrafterBlock;
 import com.tatnux.crafter.modules.crafter.blocks.SmartCrafterBlockEntity;
@@ -34,14 +33,8 @@ import static com.simibubi.create.foundation.data.ModelGen.customItemModel;
 import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
 import static com.tatnux.crafter.SmartCrafter.REGISTRATE;
 
-
 public class SmartCrafterModule implements IModule {
-
-    static {
-        Create.REGISTRATE.setCreativeTab(SmartCrafter.TAB);
-    }
-
-    @SuppressWarnings("removal")
+    @SuppressWarnings({"removal", "DataFlowIssue"})
     public static final BlockEntry<SmartCrafterBlock> SMART_CRAFTER = REGISTRATE
             .block("smart_crafter", SmartCrafterBlock::new)
             .initialProperties(SharedProperties::softMetal)
@@ -49,9 +42,10 @@ public class SmartCrafterModule implements IModule {
             .transform(copyNbt("Inventory", "SelectedRecipe", "Recipes", "KeepMode", "GhostSlots"))
             .transform(pickaxeOnly())
             .blockstate(BlockStateGen.horizontalBlockProvider(true))
-            .transform(BlockStressDefaults.setImpact(6.0))
+            .onRegister(it -> BlockStressValues.IMPACTS.register(it, () -> Config.common().crafterStressImpact.get()))
             .addLayer(() -> RenderType::cutoutMipped)
             .item()
+            .tab(AllCreativeModeTabs.BASE_CREATIVE_TAB.getKey())
             .transform(customItemModel())
             .recipe((blockDataGenContext, provider) -> MechanicalCraftingRecipeBuilder
                     .shapedRecipe(blockDataGenContext.get())
@@ -71,7 +65,6 @@ public class SmartCrafterModule implements IModule {
 
     public static final BlockEntityEntry<SmartCrafterBlockEntity> SMART_CRAFTER_BLOCK_ENTITY = REGISTRATE
             .blockEntity("smart_crafter", SmartCrafterBlockEntity::new)
-            .instance(() -> ShaftlessCogwheelInstance::new, false)
             .validBlocks(SMART_CRAFTER)
             .renderer(() -> SmartCrafterRenderer::new)
             .register();

@@ -1,15 +1,12 @@
 package com.tatnux.crafter.modules.crafter.client;
 
-import com.jozufozu.flywheel.util.transform.TransformStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 import com.simibubi.create.foundation.gui.AllIcons;
-import com.simibubi.create.foundation.gui.element.GuiGameElement;
 import com.simibubi.create.foundation.gui.menu.AbstractSimiContainerScreen;
-import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget;
 import com.simibubi.create.foundation.gui.widget.IconButton;
 import com.tatnux.crafter.lib.gui.CrafterIconButton;
 import com.tatnux.crafter.lib.gui.GuiTexture;
@@ -21,6 +18,9 @@ import com.tatnux.crafter.modules.crafter.data.CraftMode;
 import com.tatnux.crafter.modules.crafter.data.CrafterRecipe;
 import com.tatnux.crafter.modules.crafter.data.GhostSlots;
 import com.tatnux.crafter.modules.network.NetworkHandler;
+import dev.engine_room.flywheel.lib.transform.TransformStack;
+import net.createmod.catnip.gui.element.GuiGameElement;
+import net.createmod.catnip.gui.widget.AbstractSimiWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
@@ -51,7 +51,7 @@ public class SmartCrafterScreen extends AbstractSimiContainerScreen<SmartCrafter
 
     @Override
     protected void init() {
-        this.setWindowSize(30 + BG.width, BG.height + PLAYER.height - 24);
+        this.setWindowSize(30 + BG.width, BG.height + PLAYER.getHeight() - 24);
         this.setWindowOffset(-11, 0);
         super.init();
 
@@ -72,7 +72,7 @@ public class SmartCrafterScreen extends AbstractSimiContainerScreen<SmartCrafter
                 .withTooltip(Component.literal("Reset the recipe"))
                 .tooltipWhenDisabled(false)
                 .withDisabled(this.menu::isCraftingEmpty)
-                .withCallback(() -> NetworkHandler.resetRecipe(this.menu.contentHolder.selected));
+                .withCallback(() -> NetworkHandler.resetRecipe(this.menu.contentHolder.selectedRecipeIndex));
         this.addRenderableWidget(resetButton);
         this.addRenderableWidget(new WidgetBox(resetButton, BOX_COLOR));
 
@@ -163,8 +163,8 @@ public class SmartCrafterScreen extends AbstractSimiContainerScreen<SmartCrafter
         BG.render(graphics, x, y);
         graphics.drawString(this.font, this.title, x + 15, y + 4, Color.decode("#BEBEBE").getRGB(), false);
 
-        int invX = this.getLeftOfCentered(PLAYER_INVENTORY.width);
-        int invY = this.topPos + this.imageHeight - PLAYER.height;
+        int invX = this.getLeftOfCentered(PLAYER_INVENTORY.getWidth());
+        int invY = this.topPos + this.imageHeight - PLAYER.getHeight();
         this.renderPlayerInventory(graphics, invX, invY);
         this.renderCrafter(graphics, x + BG.width + 55, y + BG.height + 15, partialTicks);
         this.drawGhostSlots(graphics);
@@ -172,7 +172,7 @@ public class SmartCrafterScreen extends AbstractSimiContainerScreen<SmartCrafter
 
     private void renderCrafter(GuiGraphics graphics, int x, int y, float partialTicks) {
         PoseStack ms = graphics.pose();
-        TransformStack.cast(ms)
+        TransformStack.of(ms)
                 .pushPose()
                 .translate(x, y, 100)
                 .scale(50)
@@ -185,7 +185,7 @@ public class SmartCrafterScreen extends AbstractSimiContainerScreen<SmartCrafter
 
         this.lastRotate = this.lastRotate % 360;
 
-        TransformStack.cast(ms)
+        TransformStack.of(ms)
                 .pushPose();
         GuiGameElement.of(AllPartialModels.SHAFTLESS_COGWHEEL)
                 .rotateBlock(90, Math.abs(this.menu.contentHolder.getSpeed()) > 0 ? this.lastRotate = this.lastRotate + this.menu.contentHolder.getSpeed() / 24 : 22, 0)

@@ -1,9 +1,9 @@
 package com.tatnux.crafter.config;
 
-import com.simibubi.create.foundation.config.ConfigBase;
 import com.tatnux.crafter.SmartCrafter;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import net.createmod.catnip.config.ConfigBase;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;

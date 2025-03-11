@@ -1,6 +1,6 @@
 package com.tatnux.crafter;
 
-import com.simibubi.create.foundation.config.ui.BaseConfigScreen;
+import net.createmod.catnip.config.ui.BaseConfigScreen;
 import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModContainer;
