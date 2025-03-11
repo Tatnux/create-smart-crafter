@@ -1,10 +1,10 @@
 package com.tatnux.crafter.modules.crafter.client.widget;
 
-import com.simibubi.create.foundation.gui.widget.AbstractSimiWidget;
 import com.tatnux.crafter.lib.gui.ItemRenderUtils;
 import com.tatnux.crafter.modules.crafter.client.SmartCrafterScreen;
 import com.tatnux.crafter.modules.crafter.data.CrafterRecipe;
 import com.tatnux.crafter.modules.network.NetworkHandler;
+import net.createmod.catnip.gui.widget.AbstractSimiWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.NonNullList;
@@ -33,7 +33,7 @@ public class RecipeEntry extends AbstractSimiWidget {
     @Override
     protected void doRender(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         int color = -1;
-        if (this.parent.getMenu().contentHolder.selected == this.index) {
+        if (this.parent.getMenu().contentHolder.selectedRecipeIndex == this.index) {
             color = SELECTED_COLOR;
         } else {
             boolean dark = this.index % 2 == 0;

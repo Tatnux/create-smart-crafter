@@ -27,7 +27,7 @@ public class CrafterInventory extends ItemStackHandler implements ItemValidator 
         super.onContentsChanged(slot);
         this.blockEntity.sendData();
         this.blockEntity.setChanged();
-        this.blockEntity.retryRecipe();
+        this.blockEntity.retryCrafting();
     }
 
     public boolean canAutomationInsert(int slot) {
