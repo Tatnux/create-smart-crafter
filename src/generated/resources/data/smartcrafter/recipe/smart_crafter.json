@@ -1,6 +1,7 @@
 {
   "type": "create:mechanical_crafting",
-  "acceptMirrored": true,
+  "accept_mirrored": true,
+  "category": "misc",
   "key": {
     "B": {
       "item": "create:brass_casing"
@@ -31,6 +32,7 @@
     "BDB"
   ],
   "result": {
-    "item": "smartcrafter:smart_crafter"
+    "count": 1,
+    "id": "smartcrafter:smart_crafter"
   }
 }

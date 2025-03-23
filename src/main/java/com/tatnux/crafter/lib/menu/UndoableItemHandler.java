@@ -1,11 +1,10 @@
 package com.tatnux.crafter.lib.menu;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 public class UndoableItemHandler implements IItemHandlerModifiable {

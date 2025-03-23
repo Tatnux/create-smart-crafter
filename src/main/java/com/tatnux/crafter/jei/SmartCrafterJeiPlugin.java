@@ -16,7 +16,7 @@ public class SmartCrafterJeiPlugin implements IModPlugin {
 
     @Override
     public @NotNull ResourceLocation getPluginUid() {
-        return new ResourceLocation(SmartCrafter.MOD_ID, SmartCrafter.MOD_ID);
+        return SmartCrafter.asResource(SmartCrafter.MOD_ID);
     }
 
     @Override

@@ -11,7 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickType;
@@ -19,7 +19,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 public class SmartCrafterMenu extends MenuBase<SmartCrafterBlockEntity> {
@@ -33,7 +33,7 @@ public class SmartCrafterMenu extends MenuBase<SmartCrafterBlockEntity> {
     public static final int RESULT_SLOT_SIZE = 4;
     public static final int PLAYER_SLOT_START = RESULT_SLOT_START + RESULT_SLOT_SIZE;
 
-    public SmartCrafterMenu(MenuType<?> type, int id, Inventory inv, FriendlyByteBuf extraData) {
+    public SmartCrafterMenu(MenuType<?> type, int id, Inventory inv, RegistryFriendlyByteBuf extraData) {
         super(type, id, inv, extraData);
     }
 
@@ -47,7 +47,7 @@ public class SmartCrafterMenu extends MenuBase<SmartCrafterBlockEntity> {
     }
 
     @Override
-    protected SmartCrafterBlockEntity createOnClient(FriendlyByteBuf extraData) {
+    protected SmartCrafterBlockEntity createOnClient(RegistryFriendlyByteBuf extraData) {
         BlockPos readBlockPos = extraData.readBlockPos();
         CompoundTag readNbt = extraData.readNbt();
         ClientLevel world = Minecraft.getInstance().level;
@@ -57,11 +57,12 @@ public class SmartCrafterMenu extends MenuBase<SmartCrafterBlockEntity> {
 
         BlockEntity blockEntity = world.getBlockEntity(readBlockPos);
         if (blockEntity instanceof SmartCrafterBlockEntity smartCrafterBlockEntity) {
-            smartCrafterBlockEntity.readClient(readNbt);
+            smartCrafterBlockEntity.readClient(readNbt, extraData.registryAccess());
             return smartCrafterBlockEntity;
         }
         return null;
     }
+
 
     @Override
     protected void addSlots() {
@@ -110,7 +111,6 @@ public class SmartCrafterMenu extends MenuBase<SmartCrafterBlockEntity> {
                         .copy();
                 stackInSlot.setCount(stackInSlot.getMaxStackSize());
                 this.setCarried(stackInSlot);
-                return;
             }
             return;
         }
@@ -159,11 +159,6 @@ public class SmartCrafterMenu extends MenuBase<SmartCrafterBlockEntity> {
 
         }
         return itemStack;
-    }
-
-    @Override
-    public boolean canDragTo(Slot pSlot) {
-        return super.canDragTo(pSlot);
     }
 
     @Override

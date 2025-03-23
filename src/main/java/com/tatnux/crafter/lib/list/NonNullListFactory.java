@@ -2,7 +2,6 @@ package com.tatnux.crafter.lib.list;
 
 import net.minecraft.core.NonNullList;
 
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class NonNullListFactory {

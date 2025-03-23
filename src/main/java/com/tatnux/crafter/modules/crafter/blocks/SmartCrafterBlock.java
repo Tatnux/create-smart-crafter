@@ -7,17 +7,15 @@ import com.simibubi.create.foundation.block.IBE;
 import com.tatnux.crafter.modules.crafter.SmartCrafterModule;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.network.NetworkHooks;
-import org.jetbrains.annotations.NotNull;
+import net.neoforged.neoforge.common.util.FakePlayer;
 
 public class SmartCrafterBlock extends HorizontalKineticBlock implements IBE<SmartCrafterBlockEntity>, ICogWheel {
 
@@ -26,27 +24,26 @@ public class SmartCrafterBlock extends HorizontalKineticBlock implements IBE<Sma
     }
 
     @Override
-    public @NotNull InteractionResult use(@NotNull BlockState state, @NotNull Level world, @NotNull BlockPos pos,
-                                          Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult ray) {
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (player.isCrouching()) {
-            return InteractionResult.PASS;
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
         if (player instanceof FakePlayer) {
-            return InteractionResult.PASS;
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
         if (AllItems.WRENCH.isIn(player.getItemInHand(hand))) {
-            return InteractionResult.PASS;
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
-        if (world.isClientSide) {
-            return InteractionResult.SUCCESS;
+        if (level.isClientSide) {
+            return ItemInteractionResult.SUCCESS;
         }
 
-        this.withBlockEntityDo(world, pos,
-                crafter -> NetworkHooks.openScreen((ServerPlayer) player, crafter, crafter::sendToMenu));
-        return InteractionResult.SUCCESS;
+        this.withBlockEntityDo(level, pos,
+                crafter -> player.openMenu(crafter, crafter::sendToMenu));
+        return ItemInteractionResult.SUCCESS;
     }
 
     @Override

@@ -1,26 +1,17 @@
 package com.tatnux.crafter.modules.crafter.packet;
 
 import com.tatnux.crafter.modules.crafter.blocks.SmartCrafterMenu;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.Objects;
-import java.util.function.Supplier;
+public interface CrafterPacket extends CustomPacketPayload {
 
-public interface CrafterPacket {
-
-    default void handle(Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            ServerPlayer player = ctx.get().getSender();
-            if (player != null) {
-                ServerPlayer sender = Objects.requireNonNull(ctx.get().getSender());
-                if (sender.containerMenu instanceof SmartCrafterMenu menu) {
-                    this.handleMenu(menu);
-                }
-            }
-        });
+    default void handle(IPayloadContext ctx) {
+        if (ctx.player().containerMenu instanceof SmartCrafterMenu menu) {
+            this.handleSmartCrafterMenu(menu);
+        }
     }
 
-    void handleMenu(SmartCrafterMenu menu);
+    void handleSmartCrafterMenu(SmartCrafterMenu menu);
 
 }

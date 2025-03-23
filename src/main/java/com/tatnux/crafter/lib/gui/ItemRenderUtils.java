@@ -12,6 +12,9 @@ import org.joml.Matrix4f;
 
 public class ItemRenderUtils {
 
+    private ItemRenderUtils() {
+    }
+
     public static void renderItem(GuiGraphics graphics, ItemStack itemStack, int x, int y, int scale) {
         Minecraft minecraft = Minecraft.getInstance();
         BakedModel bakedmodel = minecraft.getItemRenderer().getModel(itemStack, minecraft.level, minecraft.player, 0);
@@ -20,7 +23,7 @@ public class ItemRenderUtils {
         float halfScale = scale / 2f;
         pose.translate(x + halfScale, y + halfScale, (float)(150));
 
-        pose.mulPoseMatrix((new Matrix4f()).scaling(1.0F, -1.0F, 1.0F));
+        pose.mulPose((new Matrix4f()).scaling(1.0F, -1.0F, 1.0F));
         pose.scale(scale, scale, scale);
         boolean flag = !bakedmodel.usesBlockLight();
         if (flag) {

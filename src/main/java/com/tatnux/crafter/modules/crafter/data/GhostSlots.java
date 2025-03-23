@@ -2,11 +2,13 @@ package com.tatnux.crafter.modules.crafter.data;
 
 import lombok.Data;
 import lombok.Getter;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.common.util.INBTSerializable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -20,7 +22,7 @@ public class GhostSlots implements INBTSerializable<ListTag> {
 
     public void addSlot(ItemStack itemStack, byte slot) {
         this.entries.stream()
-                .filter(ghostSlotEntry -> ghostSlotEntry.getItem().equals(itemStack, false))
+                .filter(ghostSlotEntry -> ItemStack.isSameItem(ghostSlotEntry.getItem(), itemStack))
                 .findFirst()
                 .orElseGet(() -> {
                     GhostSlotEntry ghostSlotEntry = new GhostSlotEntry(itemStack);
@@ -34,17 +36,17 @@ public class GhostSlots implements INBTSerializable<ListTag> {
     }
 
     @Override
-    public ListTag serializeNBT() {
+    public ListTag serializeNBT(HolderLookup.@NotNull Provider provider) {
         ListTag listTag = new ListTag();
-        this.entries.forEach(ghostSlotEntry -> listTag.add(ghostSlotEntry.serializeNBT()));
+        this.entries.forEach(ghostSlotEntry -> listTag.add(ghostSlotEntry.serializeNBT(provider)));
         return listTag;
     }
 
     @Override
-    public void deserializeNBT(ListTag listTag) {
+    public void deserializeNBT(HolderLookup.@NotNull Provider provider, ListTag listTag) {
         this.entries.clear();
         for (int i = 0; i < listTag.size(); i++) {
-            this.entries.add(new GhostSlotEntry(listTag.getCompound(i)));
+            this.entries.add(new GhostSlotEntry(provider, listTag.getCompound(i)));
         }
     }
 
@@ -56,7 +58,7 @@ public class GhostSlots implements INBTSerializable<ListTag> {
         return this.entries.stream()
                 .filter(ghostSlotEntry -> ghostSlotEntry.getSlots().contains(slot))
                 .findFirst()
-                .map(ghostSlotEntry -> ghostSlotEntry.getItem().equals(stack.copyWithCount(1), false))
+                .map(ghostSlotEntry -> ItemStack.isSameItem(ghostSlotEntry.getItem(), stack.copyWithCount(1)))
                 .orElse(true);
     }
 
@@ -69,21 +71,21 @@ public class GhostSlots implements INBTSerializable<ListTag> {
             this.item = item;
         }
 
-        public GhostSlotEntry(CompoundTag tag) {
-            this.deserializeNBT(tag);
+        public GhostSlotEntry(HolderLookup.Provider provider, CompoundTag tag) {
+            this.deserializeNBT(provider, tag);
         }
 
         @Override
-        public CompoundTag serializeNBT() {
+        public CompoundTag serializeNBT(HolderLookup.@NotNull Provider provider) {
             CompoundTag compoundTag = new CompoundTag();
-            compoundTag.put("Item", this.item.serializeNBT());
+            compoundTag.put("Item", this.item.save(provider));
             compoundTag.put("Slots", new ByteArrayTag(new ArrayList<>(this.slots)));
             return compoundTag;
         }
 
         @Override
-        public void deserializeNBT(CompoundTag compoundTag) {
-            this.item = ItemStack.of(compoundTag.getCompound("Item"));
+        public void deserializeNBT(HolderLookup.@NotNull Provider provider, CompoundTag compoundTag) {
+            this.item = ItemStack.parseOptional(provider, compoundTag.getCompound("Item"));
             this.slots.clear();
             for (byte b : compoundTag.getByteArray("Slots")) {
                 this.slots.add(b);

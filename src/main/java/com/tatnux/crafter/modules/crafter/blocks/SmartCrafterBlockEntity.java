@@ -1,6 +1,7 @@
 package com.tatnux.crafter.modules.crafter.blocks;
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.simibubi.create.foundation.item.ItemHelper;
 import com.tatnux.crafter.config.Config;
 import com.tatnux.crafter.lib.list.NonNullListFactory;
 import com.tatnux.crafter.lib.menu.InventoryTools;
@@ -13,8 +14,9 @@ import com.tatnux.crafter.modules.crafter.data.CraftMode;
 import com.tatnux.crafter.modules.crafter.data.CrafterRecipe;
 import com.tatnux.crafter.modules.crafter.data.GhostSlots;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -30,17 +32,21 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
 
-import static com.tatnux.crafter.modules.crafter.blocks.SmartCrafterMenu.*;
+import static com.tatnux.crafter.modules.crafter.blocks.SmartCrafterMenu.CONTAINER_SIZE;
+import static com.tatnux.crafter.modules.crafter.blocks.SmartCrafterMenu.CONTAINER_START;
+import static com.tatnux.crafter.modules.crafter.blocks.SmartCrafterMenu.CRAFT_RESULT_SLOT;
+import static com.tatnux.crafter.modules.crafter.blocks.SmartCrafterMenu.CRAFT_SLOT_START;
+import static com.tatnux.crafter.modules.crafter.blocks.SmartCrafterMenu.RESULT_SLOT_SIZE;
+import static com.tatnux.crafter.modules.crafter.blocks.SmartCrafterMenu.RESULT_SLOT_START;
 import static com.tatnux.crafter.modules.crafter.data.CraftMode.EXTC;
 import static com.tatnux.crafter.modules.crafter.data.CraftMode.INT;
 
@@ -48,9 +54,8 @@ public class SmartCrafterBlockEntity extends KineticBlockEntity implements MenuP
 
     public final CrafterInventory inventory;
     private final AutomationInventory automationInventory;
-    private final LazyOptional<IItemHandler> inventoryProvider;
 
-    public final NonNullList<CrafterRecipe> recipes;
+    public List<CrafterRecipe> recipes;
     public byte selectedRecipeIndex = 0;
     public boolean keepMode = false;
     public GhostSlots ghostSlots;
@@ -62,9 +67,17 @@ public class SmartCrafterBlockEntity extends KineticBlockEntity implements MenuP
         super(type, pos, state);
         this.inventory = new CrafterInventory(this);
         this.automationInventory = new AutomationInventory(this.inventory);
-        this.inventoryProvider = LazyOptional.of(() -> this.automationInventory);
+
         this.ghostSlots = new GhostSlots();
         this.recipes = NonNullListFactory.fill(9, CrafterRecipe::new);
+    }
+
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                SmartCrafterModule.SMART_CRAFTER_BLOCK_ENTITY.get(),
+                (be, context) -> be.automationInventory
+        );
     }
 
     /// From Client
@@ -139,20 +152,6 @@ public class SmartCrafterBlockEntity extends KineticBlockEntity implements MenuP
     }
 
     @Override
-    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (this.isItemHandlerCap(cap)) {
-            return this.inventoryProvider.cast();
-        }
-        return super.getCapability(cap, side);
-    }
-
-    @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        this.inventoryProvider.invalidate();
-    }
-
-    @Override
     public @NotNull Component getDisplayName() {
         return SmartCrafterModule.SMART_CRAFTER.get().getName();
     }
@@ -203,11 +202,11 @@ public class SmartCrafterBlockEntity extends KineticBlockEntity implements MenuP
         }
 
         CraftingRecipe craftingRecipe = optionalRecipe.get();
-        ItemStack result = craftingRecipe.assemble(this.workInventory, this.level.registryAccess());
+        ItemStack result = craftingRecipe.assemble(this.workInventory.asCraftInput(), this.level.registryAccess());
 
         CraftMode mode = recipe.getCraftMode();
         if (!result.isEmpty() && this.placeResult(mode, undoHandler, result)) {
-            List<ItemStack> remainingItems = craftingRecipe.getRemainingItems(this.workInventory);
+            List<ItemStack> remainingItems = craftingRecipe.getRemainingItems(this.workInventory.asCraftInput());
             CraftMode remainingMode = mode == EXTC ? INT : mode;
             for (ItemStack item : remainingItems) {
                 if (!item.isEmpty() && !this.placeResult(remainingMode, undoHandler, item)) {
@@ -228,8 +227,8 @@ public class SmartCrafterBlockEntity extends KineticBlockEntity implements MenuP
         }
 
         CraftingRecipe recipe = crafterRecipe.getRecipe();
-        int width = recipe instanceof ShapedRecipe shaped ? shaped.getRecipeWidth() : 3;
-        int height = recipe instanceof ShapedRecipe shaped ? shaped.getRecipeHeight() : 3;
+        int width = recipe instanceof ShapedRecipe shaped ? shaped.getWidth() : 3;
+        int height = recipe instanceof ShapedRecipe shaped ? shaped.getHeight() : 3;
         NonNullList<Ingredient> ingredients = recipe.getIngredients();
 
         for (int x = 0; x < width; x++) {
@@ -250,7 +249,7 @@ public class SmartCrafterBlockEntity extends KineticBlockEntity implements MenuP
                 }
             }
         }
-        return recipe.matches(this.workInventory, this.level);
+        return recipe.matches(this.workInventory.asCraftInput(), this.level);
     }
 
     private boolean placeResult(CraftMode mode, IItemHandlerModifiable undoHandler, ItemStack result) {
@@ -275,12 +274,12 @@ public class SmartCrafterBlockEntity extends KineticBlockEntity implements MenuP
             this.workInventory.setItem(i, this.inventory.getStackInSlot(i + CRAFT_SLOT_START));
         }
         CrafterRecipe.findRecipe(this.getLevel(), this.workInventory).ifPresentOrElse(recipe -> {
-            ItemStack result = recipe.assemble(this.workInventory, this.getLevel().registryAccess());
+            ItemStack result = recipe.assemble(this.workInventory.asCraftInput(), this.getLevel().registryAccess());
             this.saveRecipe(recipe, this.workInventory.getItems(), result);
         }, () -> this.saveRecipe(null, this.workInventory.getItems(), ItemStack.EMPTY)); // If no recipe was found, reset the recipe to empty
     }
 
-    public void transferRecipe(NonNullList<ItemStack> stacks) {
+    public void transferRecipe(List<ItemStack> stacks) {
         if (stacks.isEmpty()) {
             return;
         }
@@ -293,36 +292,55 @@ public class SmartCrafterBlockEntity extends KineticBlockEntity implements MenuP
     }
 
     @Override
-    protected void write(CompoundTag tag, boolean clientPacket) {
-        super.write(tag, clientPacket);
-        tag.put("Inventory", this.inventory.serializeNBT()); // Inventory
+    protected void write(CompoundTag tag, HolderLookup.Provider provider, boolean clientPacket) {
+        super.write(tag, provider, clientPacket);
+        tag.put("Inventory", this.inventory.serializeNBT(provider)); // Inventory
         tag.putByte("SelectedRecipe", this.selectedRecipeIndex); // SelectedRecipe
 
         // Create the recipe list
         ListTag recipesTag = new ListTag();
         for (CrafterRecipe recipe : this.recipes) {
             CompoundTag recipeTag = new CompoundTag();
-            recipeTag.put("Recipe", recipe.serializeNBT());
+            recipeTag.put("Recipe", recipe.serializeNBT(provider));
             recipesTag.add(recipeTag);
         }
         tag.put("Recipes", recipesTag); // Recipes
         tag.putBoolean("KeepMode", this.keepMode); // KeepMode
-        tag.put("GhostSlots", this.ghostSlots.serializeNBT()); // GhostSlots
+        tag.put("GhostSlots", this.ghostSlots.serializeNBT(provider)); // GhostSlots
     }
 
     @Override
-    protected void read(CompoundTag tag, boolean clientPacket) {
-        super.read(tag, clientPacket);
-        this.inventory.deserializeNBT(tag.getCompound("Inventory")); // Inventory
+    protected void read(CompoundTag tag, HolderLookup.Provider provider, boolean clientPacket) {
+        super.read(tag, provider, clientPacket);
+        this.inventory.deserializeNBT(provider, tag.getCompound("Inventory")); // Inventory
         this.selectedRecipeIndex = tag.getByte("SelectedRecipe"); // SelectedRecipe
 
         // Retrieve the recipes list
         ListTag recipesTag = tag.getList("Recipes", Tag.TAG_COMPOUND); // Recipes
         for (int i = 0; i < recipesTag.size(); i++) {
             CompoundTag recipeTag = recipesTag.getCompound(i);
-            this.recipes.get(i).deserializeNBT(recipeTag.getCompound("Recipe"));
+            this.recipes.get(i).deserializeNBT(provider, recipeTag.getCompound("Recipe"));
         }
         this.keepMode = tag.getBoolean("KeepMode"); // KeepMode
-        this.ghostSlots.deserializeNBT(tag.getList("GhostSlots", Tag.TAG_COMPOUND)); // GhostsSlots
+        this.ghostSlots.deserializeNBT(provider, tag.getList("GhostSlots", Tag.TAG_COMPOUND)); // GhostsSlots
+    }
+
+    @Override
+    @SuppressWarnings("DataFlowIssue")
+    protected void applyImplicitComponents(@NotNull DataComponentInput componentInput) {
+        super.applyImplicitComponents(componentInput);
+        ItemHelper.fillItemStackHandler(componentInput.get(SmartCrafterComponents.SMART_CRAFTER_INVENTORY), inventory);
+        this.keepMode = componentInput.get(SmartCrafterComponents.SMART_CRAFTER_KEEP_MODE);
+        this.selectedRecipeIndex = componentInput.get(SmartCrafterComponents.SMART_CRAFTER_SELECTED_INDEX);
+        this.recipes = componentInput.get(SmartCrafterComponents.SMART_CRAFTER_RECIPES);
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.@NotNull Builder components) {
+        super.collectImplicitComponents(components);
+        components.set(SmartCrafterComponents.SMART_CRAFTER_INVENTORY, ItemHelper.containerContentsFromHandler(inventory));
+        components.set(SmartCrafterComponents.SMART_CRAFTER_KEEP_MODE, this.keepMode);
+        components.set(SmartCrafterComponents.SMART_CRAFTER_SELECTED_INDEX, this.selectedRecipeIndex);
+        components.set(SmartCrafterComponents.SMART_CRAFTER_RECIPES, this.recipes);
     }
 }

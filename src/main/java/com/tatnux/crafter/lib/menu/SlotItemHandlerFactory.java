@@ -1,7 +1,8 @@
 package com.tatnux.crafter.lib.menu;
 
 import com.tatnux.crafter.modules.crafter.blocks.slots.ItemValidator;
-import net.minecraftforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
+
 
 public interface SlotItemHandlerFactory {
 

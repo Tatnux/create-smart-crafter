@@ -1,0 +1,8 @@
+// 1.21.1	2025-03-23T16:09:46.9255651	Registrate Provider for smartcrafter [Registries, Data Maps, Recipes, Advancements, Loot Tables, Tags (enchantments), Tags (blocks), Tags (items), Tags (fluids), Tags (entity_types), generic_server_provider, Blockstates, Item models, Lang (en_us/en_ud), generic_client_provider]
+56647f92ef54f8c6a87c1b3860d8c8147b4057bb assets/smartcrafter/blockstates/smart_crafter.json
+59ea3cc7e76a1ae4b9b28c31eac2777b0df2a510 assets/smartcrafter/lang/en_ud.json
+fe927b6299720f707382ccf331dff1d1e873689a assets/smartcrafter/lang/en_us.json
+0026bb8a8934a1ecb78da08f800f79d7c8ad37ae assets/smartcrafter/models/item/smart_crafter.json
+7b61d3a5d8f7bfacfe138bc8729f1fea83248901 data/minecraft/tags/block/mineable/pickaxe.json
+bea5a4335a226b23174a972fce9fc1da2d4c1ffc data/smartcrafter/loot_table/blocks/smart_crafter.json
+5e416e063f29f3b08314413208f9a48dc6f750e7 data/smartcrafter/recipe/smart_crafter.json

@@ -2,7 +2,11 @@ package com.tatnux.crafter.modules.crafter.client;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 import com.simibubi.create.foundation.gui.AllIcons;
@@ -34,7 +38,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
-import java.awt.*;
+import java.awt.Color;
 
 import static com.simibubi.create.foundation.gui.AllGuiTextures.PLAYER_INVENTORY;
 
@@ -166,18 +170,18 @@ public class SmartCrafterScreen extends AbstractSimiContainerScreen<SmartCrafter
         int invX = this.getLeftOfCentered(PLAYER_INVENTORY.getWidth());
         int invY = this.topPos + this.imageHeight - PLAYER.getHeight();
         this.renderPlayerInventory(graphics, invX, invY);
-        this.renderCrafter(graphics, x + BG.width + 55, y + BG.height + 15, partialTicks);
+        this.renderCrafter(graphics, x + BG.width + 55, y + BG.height + 15);
         this.drawGhostSlots(graphics);
     }
 
-    private void renderCrafter(GuiGraphics graphics, int x, int y, float partialTicks) {
+    private void renderCrafter(GuiGraphics graphics, int x, int y) {
         PoseStack ms = graphics.pose();
         TransformStack.of(ms)
                 .pushPose()
                 .translate(x, y, 100)
-                .scale(50)
-                .rotateX(-22)
-                .rotateY(-202);
+                .rotateX((float) Math.toRadians(-22))
+                .rotateY((float) Math.toRadians(-202))
+                .scale(50);
 
         GuiGameElement.of(SmartCrafterModule.SMART_CRAFTER
                         .getDefaultState())
@@ -185,10 +189,10 @@ public class SmartCrafterScreen extends AbstractSimiContainerScreen<SmartCrafter
 
         this.lastRotate = this.lastRotate % 360;
 
-        TransformStack.of(ms)
-                .pushPose();
+        TransformStack.of(ms).pushPose();
+
         GuiGameElement.of(AllPartialModels.SHAFTLESS_COGWHEEL)
-                .rotateBlock(90, Math.abs(this.menu.contentHolder.getSpeed()) > 0 ? this.lastRotate = this.lastRotate + this.menu.contentHolder.getSpeed() / 24 : 22, 0)
+                .rotateBlock(90, Math.abs(this.menu.contentHolder.getSpeed()) > 0 ? this.lastRotate = this.lastRotate - this.menu.contentHolder.getSpeed() / 24 : 22, 0)
                 .render(graphics);
         ms.popPose();
         ms.popPose();
@@ -223,7 +227,6 @@ public class SmartCrafterScreen extends AbstractSimiContainerScreen<SmartCrafter
     private static void renderGhostItem(GuiGraphics graphics, ItemStack stack, Slot slot) {
         renderAndDecorateItem(graphics, stack, slot.x, slot.y);
 
-//                    RenderSystem.disableLighting();// @todo 1.18
         RenderSystem.enableBlend();
         RenderSystem.disableDepthTest();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
@@ -245,13 +248,12 @@ public class SmartCrafterScreen extends AbstractSimiContainerScreen<SmartCrafter
         float f = 0.00390625F;
         float f1 = 0.00390625F;
         Tesselator tessellator = Tesselator.getInstance();
-        BufferBuilder buffer = tessellator.getBuilder();
-        buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-        buffer.vertex(matrix, (float) (x), (float) (y + height), zLevel).uv((float) (u) * f, (float) (v + height) * f1).endVertex();
-        buffer.vertex(matrix, (float) (x + width), (float) (y + height), zLevel).uv((float) (u + width) * f, (float) (v + height) * f1).endVertex();
-        buffer.vertex(matrix, (float) (x + width), (float) (y), zLevel).uv((float) (u + width) * f, (float) (v) * f1).endVertex();
-        buffer.vertex(matrix, (float) (x), (float) (y), zLevel).uv((float) (u) * f, (float) (v) * f1).endVertex();
-        tessellator.end();
+        BufferBuilder buffer = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        buffer.addVertex(matrix, x, (y + height), zLevel).setUv(u * f, (v + height) * f1);
+        buffer.addVertex(matrix, (x + width), (y + height), zLevel).setUv((u + width) * f, (v + height) * f1);
+        buffer.addVertex(matrix, (x + width), (y), zLevel).setUv((u + width) * f, (v) * f1);
+        buffer.addVertex(matrix, x, (y), zLevel).setUv((u) * f, (v) * f1);
+        tessellator.clear();
     }
 
     private void updateCraftMode(CraftMode mode) {

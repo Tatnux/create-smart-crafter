@@ -2,7 +2,6 @@ package com.tatnux.crafter.jei;
 
 import com.tatnux.crafter.modules.crafter.SmartCrafterModule;
 import com.tatnux.crafter.modules.crafter.blocks.SmartCrafterMenu;
-import com.tatnux.crafter.modules.network.NetworkHandler;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.ingredient.IRecipeSlotView;
@@ -17,6 +16,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
@@ -24,7 +25,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-public class CrafterRecipeTransferHandler implements IRecipeTransferHandler<SmartCrafterMenu, CraftingRecipe> {
+public class CrafterRecipeTransferHandler implements IRecipeTransferHandler<SmartCrafterMenu, RecipeHolder<CraftingRecipe>> {
 
     public static void register(IRecipeTransferRegistration transferRegistry) {
         transferRegistry.addRecipeTransferHandler(new CrafterRecipeTransferHandler(), RecipeTypes.CRAFTING);
@@ -42,13 +43,14 @@ public class CrafterRecipeTransferHandler implements IRecipeTransferHandler<Smar
     }
 
     @Override
-    public @NotNull RecipeType<CraftingRecipe> getRecipeType() {
+    public @NotNull RecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
         return RecipeTypes.CRAFTING;
     }
 
+
     @Override
     @Nullable
-    public IRecipeTransferError transferRecipe(SmartCrafterMenu container, @NotNull CraftingRecipe recipe, IRecipeSlotsView recipeLayout,
+    public IRecipeTransferError transferRecipe(SmartCrafterMenu container, @NotNull RecipeHolder<CraftingRecipe> recipe, IRecipeSlotsView recipeLayout,
                                                @NotNull Player player, boolean maxTransfer, boolean doTransfer) {
 
         if (doTransfer) {
@@ -63,8 +65,8 @@ public class CrafterRecipeTransferHandler implements IRecipeTransferHandler<Smar
                     }
                 }
             }
-//            container.transferRecipe(items);
-            NetworkHandler.sendRecipeToServer(new PacketSendRecipe(items));
+
+            PacketDistributor.sendToServer(new PacketSendRecipe(items));
         }
 
         return null;

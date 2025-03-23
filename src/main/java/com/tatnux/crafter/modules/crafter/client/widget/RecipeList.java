@@ -6,7 +6,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,24 +37,24 @@ public class RecipeList extends AbstractSimiWidget {
         }
     }
 
-
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        if (delta > 0 && this.scrollOffset > 0) {
-            this.scrollOffset--; // Scroll vers le haut
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (scrollY > 0 && this.scrollOffset > 0) {
+            this.scrollOffset--;
             this.entries.forEach(recipeEntry -> recipeEntry.index--);
-        } else if (delta < 0 && this.scrollOffset < this.parent.getMenu().contentHolder.recipes.size() - SIZE) {
+        } else if (scrollY < 0 && this.scrollOffset < this.parent.getMenu().contentHolder.recipes.size() - SIZE) {
             this.entries.forEach(recipeEntry -> recipeEntry.index++);
-            this.scrollOffset++; // Scroll vers le bas
+            this.scrollOffset++;
         }
-        return true; // Scroll géré
+        return true;
     }
 
     @Override
-    public void onClick(double mouseX, double mouseY) {
+    protected boolean clicked(double mouseX, double mouseY) {
         entries.stream().filter(recipeEntry -> recipeEntry.isMouseOver(mouseX, mouseY)).forEach(recipeEntry -> {
             recipeEntry.onClick(mouseX, mouseY);
         });
+        return true;
     }
 
     @Override
@@ -63,46 +62,18 @@ public class RecipeList extends AbstractSimiWidget {
         int endX = this.getX() + this.getWidth();
         int endY = this.getY() + this.getHeight();
         int y = this.getY() + ((this.getHeight() - 15) / SIZE) * this.scrollOffset;
-        graphics.fill(endX - 5, this.getY(), endX, endY, Color.LIGHT_GRAY.getRGB());
-//        AllGuiTextures.TRAIN_PROMPT_L.render(graphics, this.getX() + this.getWidth() - 5, y);
-//        AllGuiTextures.TRAIN_PROMPT_R.render(graphics, this.getX() + this.getWidth() - 2, y);
-        graphics.blitNineSliced(new ResourceLocation("create", "textures/gui/widgets.png"),
-                this.getX() + this.getWidth() - 5, y,
+
+        graphics.fill(endX - 5, this.getY(), endX, endY, 0xFFD3D3D3); // Light Gray (RGBA)
+
+        ResourceLocation texture = ResourceLocation.tryBuild("create", "textures/gui/widgets.png");
+
+        graphics.blit(texture,
+                endX - 5, y,
+                0, 209,
                 6, 27,
-                0, 4,
-                6, 16,
-                8, 209
+                256, 256
         );
-//        int offsetX = 2;
-//        int offsetY = 1;
-//        graphics.enableScissor(this.getX(), this.getY(), this.getX() + this.getWidth() - 1, this.getY() + this.getHeight());
-//        for (int i = this.scrollOffset; i < this.parent.recipes.size() && i < this.scrollOffset + 5; i++) {
-//            ItemStack itemStack = this.parent.recipes.get(i);
-//
-//            int x = this.getX() + offsetX;
-//            int y = this.getY() + offsetY + (i - this.scrollOffset) * LINE_HEIGHT;
-//
-//            if (!itemStack.isEmpty()) {
-//                graphics.renderItem(itemStack, x, y);
-//            }
-//            graphics.drawString(Minecraft.getInstance().font,
-//                    itemStack.isEmpty() ? Component.literal("<empty>") : itemStack.getHoverName(),
-//                    x + 19,
-//                    y + 4,
-//                    0xFFFFFF,
-//                    false);
-//
-////            renderScrollingString(
-////                    graphics,
-////                    Minecraft.getInstance().font,
-////                    itemStack.isEmpty() ? Component.literal("<empty>") : itemStack.getHoverName(),
-////                    x + 19,
-////                    y + 2,
-////                    x + 108,
-////                    y + 14,
-////                    0xFFFFFF);
-//
-//        }
-//        graphics.disableScissor();
     }
+
+
 }

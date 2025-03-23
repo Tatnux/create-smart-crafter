@@ -12,7 +12,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
+import java.awt.Color;
+import java.util.List;
 
 public class RecipeEntry extends AbstractSimiWidget {
 
@@ -48,7 +49,7 @@ public class RecipeEntry extends AbstractSimiWidget {
             graphics.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), color);
         }
 
-        NonNullList<CrafterRecipe> recipes = this.parent.getMenu().contentHolder.recipes;
+        List<CrafterRecipe> recipes = this.parent.getMenu().contentHolder.recipes;
         if (recipes == null || this.index >= recipes.size()) {
             return;
         }

@@ -1,20 +1,29 @@
 package com.tatnux.crafter.modules.crafter.packet;
 
+import com.tatnux.crafter.SmartCrafter;
 import com.tatnux.crafter.modules.crafter.blocks.SmartCrafterMenu;
-import net.minecraft.network.FriendlyByteBuf;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import org.jetbrains.annotations.NotNull;
 
 public record SetKeepMode(boolean keep) implements CrafterPacket {
 
-    public void write(FriendlyByteBuf friendlyByteBuf) {
-        friendlyByteBuf.writeBoolean(this.keep);
-    }
+    public static final CustomPacketPayload.Type<SetKeepMode> TYPE = new CustomPacketPayload.Type<>(SmartCrafter.asResource("keep_mode"));
 
-    public static SetKeepMode create(FriendlyByteBuf friendlyByteBuf) {
-        return new SetKeepMode(friendlyByteBuf.readBoolean());
+    public static final StreamCodec<ByteBuf, SetKeepMode> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.BOOL, SetKeepMode::keep,
+            SetKeepMode::new
+    );
+
+    @Override
+    public void handleSmartCrafterMenu(SmartCrafterMenu menu) {
+        menu.contentHolder.setKeepMode(this.keep);
     }
 
     @Override
-    public void handleMenu(SmartCrafterMenu menu) {
-        menu.contentHolder.setKeepMode(this.keep);
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

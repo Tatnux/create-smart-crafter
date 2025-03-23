@@ -12,35 +12,52 @@ import com.tatnux.crafter.config.Config;
 import com.tatnux.crafter.lib.module.IModule;
 import com.tatnux.crafter.modules.crafter.blocks.SmartCrafterBlock;
 import com.tatnux.crafter.modules.crafter.blocks.SmartCrafterBlockEntity;
+import com.tatnux.crafter.modules.crafter.blocks.SmartCrafterComponents;
 import com.tatnux.crafter.modules.crafter.blocks.SmartCrafterMenu;
 import com.tatnux.crafter.modules.crafter.blocks.SmartCrafterRenderer;
 import com.tatnux.crafter.modules.crafter.client.SmartCrafterScreen;
-import com.tterrag.registrate.builders.BlockBuilder;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.entry.MenuEntry;
-import com.tterrag.registrate.util.nullness.NonNullFunction;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.level.storage.loot.functions.CopyNbtFunction;
-import net.minecraft.world.level.storage.loot.providers.nbt.ContextNbtProvider;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
+import net.minecraft.world.level.storage.loot.functions.CopyNameFunction;
+import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
+import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.neoforged.bus.api.IEventBus;
 
 import static com.simibubi.create.foundation.data.ModelGen.customItemModel;
 import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
 import static com.tatnux.crafter.SmartCrafter.REGISTRATE;
 
 public class SmartCrafterModule implements IModule {
-    @SuppressWarnings({"removal", "DataFlowIssue"})
+
+    private static final String SMART_CRAFTER_ID = "smart_crafter";
+
+    @SuppressWarnings({"removal"})
     public static final BlockEntry<SmartCrafterBlock> SMART_CRAFTER = REGISTRATE
-            .block("smart_crafter", SmartCrafterBlock::new)
+            .block(SMART_CRAFTER_ID, SmartCrafterBlock::new)
             .initialProperties(SharedProperties::softMetal)
             .properties(p -> p.noOcclusion().mapColor(MapColor.TERRACOTTA_YELLOW))
-            .transform(copyNbt("Inventory", "SelectedRecipe", "Recipes", "KeepMode", "GhostSlots"))
             .transform(pickaxeOnly())
+            .loot((lt, block) ->
+                    lt.add(block, LootTable.lootTable().withPool(LootPool.lootPool()
+                    .when(ExplosionCondition.survivesExplosion())
+                    .setRolls(ConstantValue.exactly(1))
+                    .add(LootItem.lootTableItem(block)
+                            .apply(CopyNameFunction.copyName(CopyNameFunction.NameSource.BLOCK_ENTITY))
+                            .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
+                                    .include(SmartCrafterComponents.SMART_CRAFTER_INVENTORY)
+                                    .include(SmartCrafterComponents.SMART_CRAFTER_KEEP_MODE)
+                                    .include(SmartCrafterComponents.SMART_CRAFTER_SELECTED_INDEX)
+                                    .include(SmartCrafterComponents.SMART_CRAFTER_RECIPES)
+                            )
+                    )
+            )))
             .blockstate(BlockStateGen.horizontalBlockProvider(true))
             .onRegister(it -> BlockStressValues.IMPACTS.register(it, () -> Config.common().crafterStressImpact.get()))
             .addLayer(() -> RenderType::cutoutMipped)
@@ -64,38 +81,18 @@ public class SmartCrafterModule implements IModule {
             .register();
 
     public static final BlockEntityEntry<SmartCrafterBlockEntity> SMART_CRAFTER_BLOCK_ENTITY = REGISTRATE
-            .blockEntity("smart_crafter", SmartCrafterBlockEntity::new)
+            .blockEntity(SMART_CRAFTER_ID, SmartCrafterBlockEntity::new)
             .validBlocks(SMART_CRAFTER)
             .renderer(() -> SmartCrafterRenderer::new)
             .register();
 
     public static final MenuEntry<SmartCrafterMenu> CRAFTER_MENU = REGISTRATE
-            .menu("smart_crafter", SmartCrafterMenu::new, () -> SmartCrafterScreen::new)
+            .menu(SMART_CRAFTER_ID, SmartCrafterMenu::new, () -> SmartCrafterScreen::new)
             .register();
 
-    public static <T extends Block, P> NonNullFunction<BlockBuilder<T, P>, BlockBuilder<T, P>> copyNbt(String... tags) {
-        return b -> b.loot((registrateBlockLootTables, block) -> {
-            CopyNbtFunction.Builder builder = CopyNbtFunction
-                    .copyData(ContextNbtProvider.BLOCK_ENTITY);
-            for (String tag : tags) {
-                builder.copy(tag, "BlockEntityTag." + tag);
-            }
-            registrateBlockLootTables.add(block, registrateBlockLootTables.createSingleItemTable(block).apply(builder));
-        }) ;
-    }
-
     @Override
-    public void init(FMLCommonSetupEvent fmlCommonSetupEvent) {
-
-    }
-
-    @Override
-    public void initClient(FMLClientSetupEvent fmlClientSetupEvent) {
-
-    }
-
-    @Override
-    public void initConfig(IEventBus iEventBus) {
-
+    public void initConfig(IEventBus eventBus) {
+        SmartCrafterComponents.register(eventBus);
+        eventBus.addListener(SmartCrafterBlockEntity::registerCapabilities);
     }
 }

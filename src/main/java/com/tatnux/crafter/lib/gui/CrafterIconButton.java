@@ -11,11 +11,11 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 import java.util.Objects;
-import java.util.function.Supplier;
+import java.util.function.BooleanSupplier;
 
 public class CrafterIconButton extends IconButton {
 
-    private Supplier<Boolean> disabled = () -> false;
+    private BooleanSupplier disabled = () -> false;
 
     private boolean disabledState = false;
 
@@ -28,7 +28,7 @@ public class CrafterIconButton extends IconButton {
         super(x, y, icon);
     }
 
-    public CrafterIconButton withDisabled(Supplier<Boolean> disabled) {
+    public CrafterIconButton withDisabled(BooleanSupplier disabled) {
         this.disabled = disabled;
         return this;
     }
@@ -70,7 +70,7 @@ public class CrafterIconButton extends IconButton {
     @Override
     public void doRender(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         if (this.visible) {
-            this.disabledState = this.disabled.get();
+            this.disabledState = this.disabled.getAsBoolean();
             this.isHovered = mouseX >= this.getX() && mouseY >= this.getY() && mouseX < this.getX() + this.width && mouseY < this.getY() + this.height;
 
             AllGuiTextures button = this.disabledState ? AllGuiTextures.BUTTON_DOWN

@@ -4,37 +4,32 @@ import com.tatnux.crafter.SmartCrafter;
 import com.tatnux.crafter.modules.crafter.blocks.SmartCrafterMenu;
 import com.tatnux.crafter.modules.crafter.packet.CrafterPacket;
 import net.minecraft.core.NonNullList;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 
-public record PacketSendRecipe(NonNullList<ItemStack> stacks) implements CrafterPacket {
+public record PacketSendRecipe(List<ItemStack> stacks) implements CrafterPacket {
 
-    public static final ResourceLocation ID = new ResourceLocation(SmartCrafter.MOD_ID, "sendrecipe");
+    public static final CustomPacketPayload.Type<PacketSendRecipe> TYPE = new CustomPacketPayload.Type<>(SmartCrafter.asResource("send_recipe"));
 
-    public static PacketSendRecipe create(NonNullList<ItemStack> items) {
-        return new PacketSendRecipe(items);
-    }
+    public static final StreamCodec<RegistryFriendlyByteBuf, PacketSendRecipe> STREAM_CODEC = StreamCodec.composite(
+            ItemStack.OPTIONAL_LIST_STREAM_CODEC, PacketSendRecipe::stacks,
+            PacketSendRecipe::new
+    );
 
-    public void write(FriendlyByteBuf buf) {
-        buf.writeInt(stacks.size());
-        for (ItemStack stack : stacks) {
-            buf.writeItem(stack);
-        }
-    }
-
-    public static PacketSendRecipe create(FriendlyByteBuf buf) {
-        int l = buf.readInt();
-        NonNullList<ItemStack> stacks = NonNullList.withSize(l, ItemStack.EMPTY);
-        for (int i = 0; i < l; i++) {
-            stacks.set(i, buf.readItem());
-        }
-        return new PacketSendRecipe(stacks);
+    @Override
+    public void handleSmartCrafterMenu(SmartCrafterMenu menu) {
+        menu.contentHolder.transferRecipe(this.stacks);
     }
 
     @Override
-    public void handleMenu(SmartCrafterMenu menu) {
-        menu.contentHolder.transferRecipe(this.stacks);
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

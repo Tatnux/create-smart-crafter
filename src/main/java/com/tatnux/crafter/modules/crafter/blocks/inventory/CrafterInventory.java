@@ -4,7 +4,7 @@ import com.tatnux.crafter.modules.crafter.blocks.SmartCrafterBlockEntity;
 import com.tatnux.crafter.modules.crafter.blocks.SmartCrafterMenu;
 import com.tatnux.crafter.modules.crafter.blocks.slots.ItemValidator;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
 public class CrafterInventory extends ItemStackHandler implements ItemValidator {
